@@ -40,6 +40,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("ISSAM_ENHANCED_WEBHOOK")
+logger.info("PRODUCTION_BOT_STARTED")
 
 # =========================
 # Messages
@@ -338,7 +339,231 @@ def start_command(message):
     )
     bot.send_message(
         message.chat.id,
-        f"📎 {get_message(user_id, "send_link")}",
+        f"📎 {get_message(user_id, 'send_link')}",
         reply_markup=create_main_keyboard(user_id),
     )
 
+
+@bot.callback_query_handler(func=lambda c: c.data.startswith("lang_"))
+def language_callback(call):
+    user_id = call.from_user.id
+    lang_code = call.data.split("_", 1)[1]
+    user_languages[user_id] = lang_code
+
+    bot.edit_message_text(
+        get_message(user_id, "language_set")
+        + "\n\n"
+        + get_message(user_id, "send_link"),
+        call.message.chat.id,
+        call.message.message_id,
+    )
+    bot.send_message(
+        call.message.chat.id,
+        "🎉",
+        reply_markup=create_main_keyboard(user_id),
+    )
+
+
+@bot.callback_query_handler(func=lambda c: c.data.startswith("quality_"))
+def quality_callback(call):
+    user_id = call.from_user.id
+    q_code = call.data.split("_", 1)[1]
+    user_quality_preferences[user_id] = q_code
+
+    quality_names = {
+        "ultra": get_message(user_id, "quality_ultra"),
+        "hd": get_message(user_id, "quality_hd"),
+        "standard": get_message(user_id, "quality_standard"),
+        "low": get_message(user_id, "quality_low"),
+        "audio": get_message(user_id, "quality_audio"),
+    }
+    selected = quality_names.get(q_code, get_message(user_id, "quality_ultra"))
+
+    bot.edit_message_text(
+        f"✅ {get_message(user_id, 'quality_selected')} {selected}\n\n"
+        f"{get_message(user_id, 'send_link')}",
+        call.message.chat.id,
+        call.message.message_id,
+    )
+    bot.send_message(
+        call.message.chat.id,
+        "🎉",
+        reply_markup=create_main_keyboard(user_id),
+    )
+
+
+@bot.message_handler(func=lambda m: get_message(m.from_user.id, "help") in (m.text or ""))
+def help_message(message):
+    user_id = message.from_user.id
+    bot.send_message(
+        message.chat.id,
+        get_message(user_id, "help_text"),
+        reply_markup=create_main_keyboard(user_id),
+    )
+
+
+@bot.message_handler(func=lambda m: get_message(m.from_user.id, "about") in (m.text or ""))
+def about_message(message):
+    user_id = message.from_user.id
+    bot.send_message(
+        message.chat.id,
+        get_message(user_id, "about_text"),
+        reply_markup=create_main_keyboard(user_id),
+    )
+
+
+@bot.message_handler(func=lambda m: get_message(m.from_user.id, "choose_language") in (m.text or ""))
+def lang_message(message):
+    user_id = message.from_user.id
+    bot.send_message(
+        message.chat.id,
+        get_message(user_id, "choose_language"),
+        reply_markup=create_language_keyboard(),
+    )
+
+
+@bot.message_handler(func=lambda m: get_message(m.from_user.id, "quality_select") in (m.text or ""))
+def quality_message(message):
+    user_id = message.from_user.id
+    current = user_quality_preferences.get(user_id, "ultra")
+    names = {
+        "ultra": get_message(user_id, "quality_ultra"),
+        "hd": get_message(user_id, "quality_hd"),
+        "standard": get_message(user_id, "quality_standard"),
+        "low": get_message(user_id, "quality_low"),
+        "audio": get_message(user_id, "quality_audio"),
+    }
+    current_name = names.get(current, get_message(user_id, "quality_ultra"))
+    bot.send_message(
+        message.chat.id,
+        f"{get_message(user_id, 'quality_select')}\n\n🎯 الحالية: {current_name}",
+        reply_markup=create_quality_keyboard(user_id),
+    )
+
+
+@bot.message_handler(func=lambda m: True)
+def handle_message(message):
+    user_id = message.from_user.id
+    text = (message.text or "").strip()
+
+    if not is_url(text):
+        bot.send_message(
+            message.chat.id,
+            get_message(user_id, "invalid_url"),
+            reply_markup=create_main_keyboard(user_id),
+        )
+        return
+
+    current_quality = user_quality_preferences.get(user_id, "ultra")
+    names = {
+        "ultra": get_message(user_id, "quality_ultra"),
+        "hd": get_message(user_id, "quality_hd"),
+        "standard": get_message(user_id, "quality_standard"),
+        "low": get_message(user_id, "quality_low"),
+        "audio": get_message(user_id, "quality_audio"),
+    }
+    q_text = names.get(current_quality, get_message(user_id, "quality_ultra"))
+
+    processing = bot.send_message(
+        message.chat.id,
+        f"{get_message(user_id, 'processing_quality')}\n🎯 {q_text}",
+    )
+
+    try:
+        Path("downloads").mkdir(exist_ok=True)
+
+        bot.edit_message_text(
+            get_message(user_id, "downloading"),
+            message.chat.id,
+            processing.message_id,
+        )
+
+        video_file, err = process_video_url(text, user_id)
+
+        if err:
+            bot.edit_message_text(
+                err,
+                message.chat.id,
+                processing.message_id,
+            )
+            return
+
+        if video_file and os.path.exists(video_file):
+            bot.edit_message_text(
+                get_message(user_id, "uploading"),
+                message.chat.id,
+                processing.message_id,
+            )
+            file_size = os.path.getsize(video_file) / (1024 * 1024)
+
+            simple_quality = {
+                "ultra": "Ultra 1080p",
+                "hd": "HD 720p",
+                "standard": "480p",
+                "low": "360p",
+                "audio": "320kbps MP3",
+            }.get(current_quality, "Ultra 1080p")
+
+            caption = (
+                f"✅ {get_message(user_id, 'success')}\n\n"
+                f"📁 Size: {file_size:.1f} MB\n"
+                f"🎥 Quality: {simple_quality}\n"
+                "🧪 ISSAM Enhanced Test Bot v2.0"
+            )
+
+            if current_quality == "audio" or video_file.lower().endswith(
+                (".mp3", ".m4a", ".aac", ".opus")
+            ):
+                with open(video_file, "rb") as audio:
+                    bot.send_audio(
+                        message.chat.id,
+                        audio,
+                        caption=caption,
+                        reply_markup=create_main_keyboard(user_id),
+                    )
+            else:
+                with open(video_file, "rb") as video:
+                    bot.send_video(
+                        message.chat.id,
+                        video,
+                        caption=caption,
+                        reply_markup=create_main_keyboard(user_id),
+                    )
+
+            bot.delete_message(message.chat.id, processing.message_id)
+            try:
+                os.remove(video_file)
+            except OSError:
+                pass
+        else:
+            bot.edit_message_text(
+                get_message(user_id, "error"),
+                message.chat.id,
+                processing.message_id,
+            )
+
+    except Exception as e:
+        logger.error(f"[Enhanced] general error: {e}")
+        bot.edit_message_text(
+            get_message(user_id, "error"),
+            message.chat.id,
+            processing.message_id,
+        )
+
+
+# =========================
+# Webhook setup & run
+# =========================
+
+def setup_webhook():
+    logger.info("Removing old webhook")
+    bot.remove_webhook()
+    time.sleep(1)
+    logger.info(f"Setting webhook to {WEBHOOK_URL}")
+    bot.set_webhook(url=WEBHOOK_URL, max_connections=10)
+
+
+if __name__ == "__main__":
+    setup_webhook()
+    logger.info(f"Starting Flask server on port {PORT}")
+    app.run(host="0.0.0.0", port=PORT)
