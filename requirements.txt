@@ -13,3 +13,5 @@ python-dotenv>=1.0.0
 
 # For better logging
 colorlog>=6.8.0
+
+Flask>=3.0.0
