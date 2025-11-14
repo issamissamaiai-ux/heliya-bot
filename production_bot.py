@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ISSAM Enhanced Test Bot - Render Webhook Version
+ISSAM Enhanced Test Bot - Webhook + Flask (Render)
 """
 
 import os
@@ -43,70 +43,80 @@ logger = logging.getLogger("ISSAM_ENHANCED_WEBHOOK")
 logger.info("PRODUCTION_BOT_STARTED")
 
 # =========================
-# Messages
+# Messages (Copie du code local)
 # =========================
 
 MESSAGES = {
     "ar": {
-        "welcome": "🎬 مرحباً بك في بوت ISSAM المحسن!\n\nأرسل أي رابط فيديو وسأحمله لك بدون علامة مائية.",
+        "welcome": "🎬 مرحباً بك في بوت ISSAM المحسن للاختبار!\n\n💫 أرسل لي رابط فيديو من أي منصة وسأقوم بتحميله لك بدون علامة مائية!\n\nالمنصات المدعومة:\n• YouTube 📺\n• TikTok 🎵\n• Instagram 📸\n• Facebook 📘\n• Twitter 🐦\n• Reddit 📖\n• LinkedIn 💼\n• و أكثر من 1000 منصة أخرى!\n\n🎯 الجودة الافتراضية: 1080p فائقة\n\nاختر لغتك:",
         "choose_language": "🌍 اختر لغتك / Choose Language:",
         "language_set": "✅ تم تعيين اللغة العربية!",
         "send_link": "📎 أرسل رابط الفيديو الذي تريد تحميله:",
         "processing": "⏳ جاري معالجة الرابط...",
-        "processing_quality": "⚙️ جاري المعالجة بالجودة المختارة...",
         "downloading": "⬇️ جاري تحميل الفيديو...",
         "uploading": "⬆️ جاري رفع الفيديو...",
         "success": "✅ تم التحميل بنجاح!",
         "error": "❌ حدث خطأ أثناء التحميل. يرجى المحاولة مرة أخرى.",
-        "invalid_url": "❌ رابط غير صحيح. أرسل رابط يبدأ بـ http أو https.",
-        "too_large": "❌ حجم الفيديو كبير جداً (أكثر من 50 ميجا). جرب فيديو أصغر أو جودة أقل.",
+        "invalid_url": "❌ رابط غير صحيح. يرجى إرسال رابط صحيح.",
+        "too_large": "❌ حجم الفيديو كبير جداً (أكثر من 50 ميجا). جرب فيديو أصغر.",
         "unsupported": "❌ منصة غير مدعومة أو فيديو غير متاح.",
+        "back_to_menu": "🔙 العودة للقائمة الرئيسية",
         "help": "🆘 مساعدة",
-        "help_text": "📚 طريقة الاستخدام:\n\n1️⃣ أرسل رابط الفيديو\n2️⃣ اختر الجودة من الزر\n3️⃣ انتظر التحميل\n4️⃣ استلم الفيديو.",
+        "help_text": "📚 كيفية استخدام البوت:\n\n1️⃣ أرسل رابط الفيديو\n2️⃣ انتظر التحميل\n3️⃣ احصل على الفيديو!\n\n💡 نصائح:\n• تأكد من أن الرابط صحيح\n• الفيديوهات الكبيرة تحتاج وقت أطول\n• بعض المنصات قد تتطلب تسجيل دخول\n\n🎯 البوت المحسن يدعم:\n• جودة عالية HD\n• تحميل سريع\n• معالجة أخطاء متقدمة\n• حماية من التضارب",
+        "instagram_auth_error": "❌ فيديو الإنستغرام يتطلب تسجيل دخول\n\n📱 حاول استخدام منصات أخرى:\n• TikTok ✅\n• YouTube ✅\n• Facebook ✅\n• Twitter ✅\n• Reddit ✅\n\nأو جرب رابط إنستغرام آخر قد يكون عام.",
+        "network_error": "❌ مشكلة في الاتصال بالإنترنت\n\n🔄 يرجى:\n• التأكد من اتصال الإنترنت\n• المحاولة مرة أخرى بعد قليل\n• التحقق من أن الرابط يعمل في المتصفح",
+        "video_unavailable": "❌ الفيديو غير متاح حالياً\n\n💡 الأسباب المحتملة:\n• الفيديو محذوف أو خاص\n• مشكلة مؤقتة في المنصة\n• الرابط قديم أو منتهي الصلاحية\n\n🔄 جرب رابط آخر أو عد لاحقاً",
+        "quality_info": "🎥 معلومات الجودة:",
+        "processing_advanced": "🚀 معالجة متقدمة جارية...",
         "about": "ℹ️ حول البوت",
-        "about_text": "🤖 بوت ISSAM للتحميل من 1000+ منصة.",
-        "instagram_auth_error": "❌ فيديو إنستغرام يتطلب تسجيل دخول أو غير متاح للعامة.",
-        "network_error": "❌ مشكلة في الاتصال بالإنترنت. حاول لاحقاً.",
-        "video_unavailable": "❌ الفيديو غير متاح حالياً. جرب رابطاً آخر.",
+        "about_text": "🎬 بوت ISSAM المحسن للاختبار\n\n🔥 الميزات:\n• تحميل من 1000+ منصة\n• 4 لغات مدعومة\n• معالجة أخطاء متقدمة\n• حماية من التضارب\n• جودة عالية HD\n• تحميل سريع\n• اختيار الجودة المرغوبة\n\n👨‍💻 المطور: ISSAM\n🧪 إصدار الاختبار: v2.0\n📅 آخر تحديث: نوفمبر 2025",
         "quality_select": "🎥 اختر جودة الفيديو:",
         "quality_ultra": "💎 جودة فائقة (1080p)",
-        "quality_hd": "🔥 جودة عالية (720p)",
+        "quality_hd": "🔥 جودة عالية HD (720p)",
         "quality_standard": "📺 جودة عادية (480p)",
         "quality_low": "📱 جودة منخفضة (360p)",
-        "quality_audio": "🎵 صوت فقط (MP3)",
+        "quality_audio": "🎵 صوت عالي الجودة (320kbps MP3)",
         "quality_selected": "تم اختيار الجودة:",
+        "processing_quality": "⚙️ معالجة بالجودة المحددة...",
     },
     "en": {
-        "welcome": "🎬 Welcome to ISSAM Enhanced Download Bot!\n\nSend any video link and I'll download it without watermark.",
+        "welcome": "🎬 Welcome to ISSAM Enhanced Test Bot!\n\n💫 Send me a video link from any platform and I'll download it without watermark!\n\nSupported Platforms:\n• YouTube 📺\n• TikTok 🎵\n• Instagram 📸\n• Facebook 📘\n• Twitter 🐦\n• Reddit 📖\n• LinkedIn 💼\n• And 1000+ other platforms!\n\n🎯 Default Quality: Ultra 1080p\n\nChoose your language:",
         "choose_language": "🌍 اختر لغتك / Choose Language:",
         "language_set": "✅ English language has been set!",
         "send_link": "📎 Send the video link you want to download:",
-        "processing": "⏳ Processing link...",
-        "processing_quality": "⚙️ Processing with selected quality...",
+        "processing": "⏳ Processing the link...",
         "downloading": "⬇️ Downloading video...",
         "uploading": "⬆️ Uploading video...",
         "success": "✅ Downloaded successfully!",
         "error": "❌ An error occurred during download. Please try again.",
-        "invalid_url": "❌ Invalid link. Please send a valid http/https link.",
-        "too_large": "❌ Video is too large (over 50 MB). Try a smaller video or lower quality.",
+        "invalid_url": "❌ Invalid link. Please send a valid link.",
+        "too_large": "❌ Video file is too large (over 50MB). Try a smaller video.",
         "unsupported": "❌ Unsupported platform or video not available.",
+        "back_to_menu": "🔙 Back to Main Menu",
         "help": "🆘 Help",
-        "help_text": "📚 How to use:\n\n1️⃣ Send video link\n2️⃣ Choose quality\n3️⃣ Wait for download\n4️⃣ Receive your video.",
+        "help_text": "📚 How to use the bot:\n\n1️⃣ Send video link\n2️⃣ Wait for download\n3️⃣ Get your video!\n\n💡 Tips:\n• Make sure the link is correct\n• Large videos take longer\n• Some platforms may require login\n\n🎯 Enhanced features:\n• High quality HD\n• Fast downloads\n• Advanced error handling\n• Conflict protection",
+        "instagram_auth_error": "❌ Instagram video requires login\n\n📱 Try other platforms:\n• TikTok ✅\n• YouTube ✅\n• Facebook ✅\n• Twitter ✅\n• Reddit ✅\n\nOr try another Instagram link that might be public.",
+        "network_error": "❌ Internet connection problem\n\n🔄 Please:\n• Check your internet connection\n• Try again in a moment\n• Verify the link works in browser",
+        "video_unavailable": "❌ Video is currently unavailable\n\n💡 Possible reasons:\n• Video deleted or private\n• Temporary platform issue\n• Link expired or old\n\n🔄 Try another link or come back later",
+        "quality_info": "🎥 Quality information:",
+        "processing_advanced": "🚀 Advanced processing in progress...",
         "about": "ℹ️ About Bot",
-        "about_text": "🤖 ISSAM Enhanced Test Bot.",
-        "instagram_auth_error": "❌ Instagram video requires login or is not public.",
-        "network_error": "❌ Internet connection problem. Please try again later.",
-        "video_unavailable": "❌ Video is currently unavailable. Try another link.",
+        "about_text": "🎬 ISSAM Enhanced Test Bot\n\n🔥 Features:\n• Download from 1000+ platforms\n• 4 supported languages\n• Advanced error handling\n• Conflict protection\n• High quality HD\n• Fast downloads\n• Quality selection\n\n👨‍💻 Developer: ISSAM\n🧪 Test Version: v2.0\n📅 Last Update: November 2025",
         "quality_select": "🎥 Choose video quality:",
-        "quality_ultra": "💎 Ultra (1080p)",
-        "quality_hd": "🔥 HD (720p)",
-        "quality_standard": "📺 Standard (480p)",
-        "quality_low": "📱 Low (360p)",
-        "quality_audio": "🎵 Audio only (MP3)",
+        "quality_ultra": "💎 Ultra Quality (1080p)",
+        "quality_hd": "🔥 High Quality HD (720p)",
+        "quality_standard": "📺 Standard Quality (480p)",
+        "quality_low": "📱 Low Quality (360p)",
+        "quality_audio": "🎵 High Quality Audio (320kbps MP3)",
         "quality_selected": "Quality selected:",
+        "processing_quality": "⚙️ Processing with selected quality...",
     },
-    "fa": {},
-    "fr": {},
+    "fa": {
+        # يمكن تكميلها بنفس النصوص من الكود الأصلي إذا احتجتها
+    },
+    "fr": {
+        # يمكن تكميلها كذلك
+    },
 }
 
 user_languages = {}
@@ -117,9 +127,8 @@ user_quality_preferences = {}
 # =========================
 
 def get_message(user_id, key):
-    lang = user_languages.get(user_id, "ar")
-    base = MESSAGES.get(lang, MESSAGES["ar"])
-    return base.get(key, MESSAGES["ar"][key])
+    user_lang = user_languages.get(user_id, "ar")
+    return MESSAGES[user_lang].get(key, MESSAGES["ar"][key])
 
 
 def create_language_keyboard():
@@ -138,25 +147,15 @@ def create_language_keyboard():
 def create_quality_keyboard(user_id):
     markup = telebot.types.InlineKeyboardMarkup(row_width=2)
     markup.add(
-        telebot.types.InlineKeyboardButton(
-            get_message(user_id, "quality_ultra"), callback_data="quality_ultra"
-        ),
-        telebot.types.InlineKeyboardButton(
-            get_message(user_id, "quality_hd"), callback_data="quality_hd"
-        ),
+        telebot.types.InlineKeyboardButton(get_message(user_id, "quality_ultra"), callback_data="quality_ultra"),
+        telebot.types.InlineKeyboardButton(get_message(user_id, "quality_hd"), callback_data="quality_hd"),
     )
     markup.add(
-        telebot.types.InlineKeyboardButton(
-            get_message(user_id, "quality_standard"), callback_data="quality_standard"
-        ),
-        telebot.types.InlineKeyboardButton(
-            get_message(user_id, "quality_low"), callback_data="quality_low"
-        ),
+        telebot.types.InlineKeyboardButton(get_message(user_id, "quality_standard"), callback_data="quality_standard"),
+        telebot.types.InlineKeyboardButton(get_message(user_id, "quality_low"), callback_data="quality_low"),
     )
     markup.add(
-        telebot.types.InlineKeyboardButton(
-            get_message(user_id, "quality_audio"), callback_data="quality_audio"
-        )
+        telebot.types.InlineKeyboardButton(get_message(user_id, "quality_audio"), callback_data="quality_audio"),
     )
     return markup
 
@@ -180,26 +179,22 @@ def is_url(text: str) -> bool:
 
 def detect_error_type(error_message: str) -> str:
     e = error_message.lower()
+    if "sign in to confirm you’re not a bot" in e or "sign in to confirm you're not a bot" in e:
+        # حماية YouTube ضد البوتات
+        return "video_unavailable"
     if any(
-        k in e
-        for k in [
-            "login",
-            "authentication",
-            "sign in",
-            "private",
-            "unavailable",
-            "empty media response",
-        ]
+        keyword in e
+        for keyword in ["login", "authentication", "sign in", "private", "unavailable", "empty media response"]
     ):
         return "instagram_auth_error"
-    if any(k in e for k in ["network", "connection", "timeout", "unreachable"]):
+    if any(keyword in e for keyword in ["network", "connection", "timeout", "unreachable"]):
         return "network_error"
     return "video_unavailable"
 
 
 def get_quality_format(user_id: int) -> str:
     quality = user_quality_preferences.get(user_id, "ultra")
-    logger.info(f"[Quality] user {user_id} uses: {quality}")
+    logger.info(f"🎯 [Quality] user {user_id} uses: {quality}")
 
     if quality == "ultra":
         return "best[height>=720]/best"
@@ -215,14 +210,15 @@ def get_quality_format(user_id: int) -> str:
 
 
 def process_video_url(url: str, user_id: int):
+    """نسخة webhook من process_video_url ديالك"""
     try:
-        fmt = get_quality_format(user_id)
+        format_selector = get_quality_format(user_id)
         quality_preference = user_quality_preferences.get(user_id, "ultra")
 
         Path("downloads").mkdir(exist_ok=True)
 
         ydl_opts = {
-            "format": fmt,
+            "format": format_selector,
             "outtmpl": "downloads/%(title)s_%(format_id)s.%(ext)s",
             "noplaylist": True,
             "extract_flat": False,
@@ -260,39 +256,57 @@ def process_video_url(url: str, user_id: int):
         }
 
         if quality_preference == "audio":
-            logger.info("[Audio] audio‑only mode enabled")
+            logger.info("🎵 [Audio] audio-only mode enabled")
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            logger.info(f"[Enhanced] extracting info: {url}")
+            logger.info(f"🔍 [Enhanced] extracting info: {url}")
             info = ydl.extract_info(url, download=False)
+
             if not info:
+                logger.error("❌ failed to extract info")
                 return None, get_message(user_id, "video_unavailable")
 
-            filesize = info.get("filesize") or info.get("filesize_approx") or 0
+            # log first 5 formats (optional)
+            if "formats" in info:
+                logger.info("📊 [Quality Debug] available formats:")
+                for fmt in info["formats"][:5]:
+                    h = fmt.get("height", "unknown")
+                    w = fmt.get("width", "unknown")
+                    fs = fmt.get("filesize", 0)
+                    size_mb = f"{fs/(1024*1024):.1f}MB" if fs else "unknown"
+                    fid = fmt.get("format_id", "unknown")
+                    logger.info(f"  🎥 {fid}: {w}x{h} - {size_mb}")
+
+            filesize = info.get("filesize") or 0
             if filesize and filesize > 50 * 1024 * 1024:
+                logger.warning(f"⚠️ file too large: {filesize/1024/1024:.1f} MB")
                 return None, get_message(user_id, "too_large")
 
-            logger.info("[Enhanced] downloading...")
+            logger.info("⬇️ [Enhanced] downloading video...")
             ydl.download([url])
 
         import glob
 
-        files = glob.glob("downloads/*")
-        if not files:
+        downloads = glob.glob("downloads/*")
+        logger.info(f"🔍 [Files] in downloads: {downloads}")
+
+        if downloads:
+            video_file = max(downloads, key=os.path.getctime)
+            if Path(video_file).exists():
+                size_mb = Path(video_file).stat().st_size / (1024 * 1024)
+                logger.info(f"✅ downloaded: {video_file} ({size_mb:.1f} MB)")
+                return video_file, None
+            logger.error(f"❌ file missing: {video_file}")
             return None, get_message(user_id, "error")
 
-        video_file = max(files, key=os.path.getctime)
-        if not os.path.exists(video_file):
-            return None, get_message(user_id, "error")
-
-        logger.info(f"Downloaded file: {video_file}")
-        return video_file, None
+        logger.error("❌ no downloaded files found")
+        return None, get_message(user_id, "error")
 
     except Exception as e:
-        msg = str(e)
-        logger.error(f"[Enhanced] download error: {msg}")
-        etype = detect_error_type(msg)
-        return None, get_message(user_id, etype)
+        error_message = str(e)
+        logger.error(f"❌ [Enhanced] download error: {error_message}")
+        error_type = detect_error_type(error_message)
+        return None, get_message(user_id, error_type)
 
 
 # =========================
@@ -315,7 +329,7 @@ def telegram_webhook():
 
 
 # =========================
-# Handlers
+# Handlers (start/help/about/quality/text)
 # =========================
 
 @bot.message_handler(commands=["start"])
@@ -333,8 +347,7 @@ def start_command(message):
     )
     bot.send_message(
         message.chat.id,
-        f"🎥 {get_message(user_id, 'quality_select')}\n\n🎯 الحالية: "
-        f"{get_message(user_id, 'quality_ultra')}",
+        f"🎥 {get_message(user_id, 'quality_select')}\n\n🎯 الحالية: {get_message(user_id, 'quality_ultra')}",
         reply_markup=create_quality_keyboard(user_id),
     )
     bot.send_message(
@@ -344,18 +357,17 @@ def start_command(message):
     )
 
 
-@bot.callback_query_handler(func=lambda c: c.data.startswith("lang_"))
+@bot.callback_query_handler(func=lambda call: call.data.startswith("lang_"))
 def language_callback(call):
     user_id = call.from_user.id
-    lang_code = call.data.split("_", 1)[1]
+    lang_code = call.data.split("_")[1]
     user_languages[user_id] = lang_code
 
     bot.edit_message_text(
-        get_message(user_id, "language_set")
-        + "\n\n"
-        + get_message(user_id, "send_link"),
+        get_message(user_id, "language_set") + "\n\n" + get_message(user_id, "send_link"),
         call.message.chat.id,
         call.message.message_id,
+        reply_markup=None,
     )
     bot.send_message(
         call.message.chat.id,
@@ -364,11 +376,11 @@ def language_callback(call):
     )
 
 
-@bot.callback_query_handler(func=lambda c: c.data.startswith("quality_"))
+@bot.callback_query_handler(func=lambda call: call.data.startswith("quality_"))
 def quality_callback(call):
     user_id = call.from_user.id
-    q_code = call.data.split("_", 1)[1]
-    user_quality_preferences[user_id] = q_code
+    quality_code = call.data.split("_")[1]
+    user_quality_preferences[user_id] = quality_code
 
     quality_names = {
         "ultra": get_message(user_id, "quality_ultra"),
@@ -377,13 +389,13 @@ def quality_callback(call):
         "low": get_message(user_id, "quality_low"),
         "audio": get_message(user_id, "quality_audio"),
     }
-    selected = quality_names.get(q_code, get_message(user_id, "quality_ultra"))
+    selected_quality = quality_names.get(quality_code, get_message(user_id, "quality_ultra"))
 
     bot.edit_message_text(
-        f"✅ {get_message(user_id, 'quality_selected')} {selected}\n\n"
-        f"{get_message(user_id, 'send_link')}",
+        f"✅ {get_message(user_id, 'quality_selected')} {selected_quality}\n\n{get_message(user_id, 'send_link')}",
         call.message.chat.id,
         call.message.message_id,
+        reply_markup=None,
     )
     bot.send_message(
         call.message.chat.id,
@@ -393,7 +405,7 @@ def quality_callback(call):
 
 
 @bot.message_handler(func=lambda m: get_message(m.from_user.id, "help") in (m.text or ""))
-def help_message(message):
+def help_command(message):
     user_id = message.from_user.id
     bot.send_message(
         message.chat.id,
@@ -403,7 +415,7 @@ def help_message(message):
 
 
 @bot.message_handler(func=lambda m: get_message(m.from_user.id, "about") in (m.text or ""))
-def about_message(message):
+def about_command(message):
     user_id = message.from_user.id
     bot.send_message(
         message.chat.id,
@@ -413,7 +425,7 @@ def about_message(message):
 
 
 @bot.message_handler(func=lambda m: get_message(m.from_user.id, "choose_language") in (m.text or ""))
-def lang_message(message):
+def language_command(message):
     user_id = message.from_user.id
     bot.send_message(
         message.chat.id,
@@ -423,25 +435,26 @@ def lang_message(message):
 
 
 @bot.message_handler(func=lambda m: get_message(m.from_user.id, "quality_select") in (m.text or ""))
-def quality_message(message):
+def quality_command(message):
     user_id = message.from_user.id
-    current = user_quality_preferences.get(user_id, "ultra")
-    names = {
+    current_quality = user_quality_preferences.get(user_id, "ultra")
+    quality_names = {
         "ultra": get_message(user_id, "quality_ultra"),
         "hd": get_message(user_id, "quality_hd"),
         "standard": get_message(user_id, "quality_standard"),
         "low": get_message(user_id, "quality_low"),
         "audio": get_message(user_id, "quality_audio"),
     }
-    current_name = names.get(current, get_message(user_id, "quality_ultra"))
+    current_quality_name = quality_names.get(current_quality, get_message(user_id, "quality_ultra"))
+
     bot.send_message(
         message.chat.id,
-        f"{get_message(user_id, 'quality_select')}\n\n🎯 الحالية: {current_name}",
+        f"{get_message(user_id, 'quality_select')}\n\n🎯 الحالية: {current_quality_name}",
         reply_markup=create_quality_keyboard(user_id),
     )
 
 
-@bot.message_handler(func=lambda m: True)
+@bot.message_handler(func=lambda message: True)
 def handle_message(message):
     user_id = message.from_user.id
     text = (message.text or "").strip()
@@ -455,18 +468,18 @@ def handle_message(message):
         return
 
     current_quality = user_quality_preferences.get(user_id, "ultra")
-    names = {
+    quality_names = {
         "ultra": get_message(user_id, "quality_ultra"),
         "hd": get_message(user_id, "quality_hd"),
         "standard": get_message(user_id, "quality_standard"),
         "low": get_message(user_id, "quality_low"),
         "audio": get_message(user_id, "quality_audio"),
     }
-    q_text = names.get(current_quality, get_message(user_id, "quality_ultra"))
+    quality_text = quality_names.get(current_quality, get_message(user_id, "quality_ultra"))
 
-    processing = bot.send_message(
+    processing_msg = bot.send_message(
         message.chat.id,
-        f"{get_message(user_id, 'processing_quality')}\n🎯 {q_text}",
+        f"{get_message(user_id, 'processing_quality')}\n🎯 {quality_text}",
     )
 
     try:
@@ -475,45 +488,45 @@ def handle_message(message):
         bot.edit_message_text(
             get_message(user_id, "downloading"),
             message.chat.id,
-            processing.message_id,
+            processing_msg.message_id,
         )
 
-        video_file, err = process_video_url(text, user_id)
+        video_file, error_message = process_video_url(text, user_id)
 
-        if err:
+        if error_message:
             bot.edit_message_text(
-                err,
+                error_message,
                 message.chat.id,
-                processing.message_id,
+                processing_msg.message_id,
             )
             return
 
-        if video_file and os.path.exists(video_file):
+        if video_file and Path(video_file).exists():
             bot.edit_message_text(
                 get_message(user_id, "uploading"),
                 message.chat.id,
-                processing.message_id,
+                processing_msg.message_id,
             )
-            file_size = os.path.getsize(video_file) / (1024 * 1024)
 
-            simple_quality = {
+            file_size = Path(video_file).stat().st_size / (1024 * 1024)
+            current_quality = user_quality_preferences.get(user_id, "ultra")
+            quality_info_map = {
                 "ultra": "Ultra 1080p",
                 "hd": "HD 720p",
                 "standard": "480p",
                 "low": "360p",
                 "audio": "320kbps MP3",
-            }.get(current_quality, "Ultra 1080p")
+            }
+            quality_info = quality_info_map.get(current_quality, "Ultra 1080p")
 
             caption = (
                 f"✅ {get_message(user_id, 'success')}\n\n"
-                f"📁 Size: {file_size:.1f} MB\n"
-                f"🎥 Quality: {simple_quality}\n"
+                f"📁 الحجم: {file_size:.1f} MB\n"
+                f"🎥 الجودة: {quality_info}\n"
                 "🧪 ISSAM Enhanced Test Bot v2.0"
             )
 
-            if current_quality == "audio" or video_file.lower().endswith(
-                (".mp3", ".m4a", ".aac", ".opus")
-            ):
+            if current_quality == "audio" or video_file.endswith((".mp3", ".m4a", ".aac", ".opus")):
                 with open(video_file, "rb") as audio:
                     bot.send_audio(
                         message.chat.id,
@@ -530,24 +543,26 @@ def handle_message(message):
                         reply_markup=create_main_keyboard(user_id),
                     )
 
-            bot.delete_message(message.chat.id, processing.message_id)
+            bot.delete_message(message.chat.id, processing_msg.message_id)
+
             try:
-                os.remove(video_file)
-            except OSError:
+                Path(video_file).unlink()
+                logger.info(f"🗑️ [Enhanced] deleted file: {video_file}")
+            except Exception:
                 pass
         else:
             bot.edit_message_text(
                 get_message(user_id, "error"),
                 message.chat.id,
-                processing.message_id,
+                processing_msg.message_id,
             )
 
     except Exception as e:
-        logger.error(f"[Enhanced] general error: {e}")
+        logger.error(f"❌ [Enhanced] general error: {e}")
         bot.edit_message_text(
             get_message(user_id, "error"),
             message.chat.id,
-            processing.message_id,
+            processing_msg.message_id,
         )
 
 
