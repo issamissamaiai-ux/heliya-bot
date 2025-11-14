@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 """
-HOLAKO Download Bot - Production Version with Full Multilingual Support
-بوت هولاكو للإنتاج مع دعم كامل لأربع لغات
-
-Optimized for free hosting platforms (Render, Railway, etc.)
-مُحسّن للاستضافة المجانية مع الحفاظ على جميع اللغات
+HOLAKO Download Bot - Webhook + Flask version for Render Web Service
 """
 
 import os
@@ -14,49 +10,72 @@ import threading
 from urllib.parse import urlparse
 from pathlib import Path
 
+from flask import Flask, request, abort
 import telebot
 from telebot import types
 
 # =========================
-# Logging configuration
+# Logging
 # =========================
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
 )
-logger = logging.getLogger("HOLAKO_PROD")
+logger = logging.getLogger("HOLAKO_WEBHOOK")
 
 # =========================
-# Bot configuration
+# Config
 # =========================
 
-# IMPORTANT: token is read ONLY from environment variable BOT_TOKEN
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
-
 if not BOT_TOKEN:
-    logger.error("BOT_TOKEN is not set. Please configure it in Render Environment Variables.")
-    raise SystemExit("BOT_TOKEN is required")
+    raise SystemExit("BOT_TOKEN env variable is required")
+
+# Render يعطي PORT فـ env
+PORT = int(os.environ.get("PORT", 5000))
+
+# هنا حط الدومين ديال Render ديالك بلا / فالنهاية
+BASE_URL = os.getenv("BASE_URL", "https://heliya-bot-1.onrender.com")
+
+WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
+WEBHOOK_URL = BASE_URL + WEBHOOK_PATH
 
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
+app = Flask(__name__)
 
-# In‑memory user data (for production use DB if needed)
 user_data = {}
 
 # =========================
-# Multilingual messages
+# Messages (استعمل اللي عندك)
 # =========================
 
 MESSAGES = {
-    # Arabic & English كما في الكود اللي بعثتي (نفس المحتوى)
-    # لو بغيت، خليه بالضبط كما عندك الآن لأنه صحيح
-    # ...
+    "ar": {
+        "welcome": "🎬 أهلاً {name}! أرسل رابط الفيديو للتحميل.",
+        "processing": "⏳ جاري معالجة الرابط...",
+        "invalid_url": "❌ أرسل رابط فيديو صالح.",
+        "video_unavailable": "❌ الفيديو غير متاح، جرّب رابط آخر.",
+        "success": "✅ تم التحميل!",
+        "analyzing": "🔍 جاري تحليل الرابط...",
+        "extracting": "📊 استخراج معلومات الفيديو...",
+        "downloading": "⬇️ جاري التحميل...",
+        "uploading": "📤 جاري الرفع...",
+        "file_too_large": "❌ حجم الفيديو {size:.1f} MB أكبر من 50MB.",
+    },
+    "en": {
+        "welcome": "🎬 Welcome {name}! Send a video link to download.",
+        "processing": "⏳ Processing link...",
+        "invalid_url": "❌ Please send a valid video URL.",
+        "video_unavailable": "❌ Video unavailable, try another link.",
+        "success": "✅ Download successful!",
+        "analyzing": "🔍 Analyzing link...",
+        "extracting": "📊 Extracting info...",
+        "downloading": "⬇️ Downloading...",
+        "uploading": "📤 Uploading...",
+        "file_too_large": "❌ Video size {size:.1f} MB > 50MB.",
+    },
 }
-# (خلي الباقي ديال MESSAGES كما في نسختك الأخيرة لأنه طويل ومزيان)
-
-# =========================
-# Helpers
-# =========================
 
 
 def get_user_language(user_id: int) -> str:
@@ -97,76 +116,35 @@ def is_valid_url(url: str) -> bool:
 
 
 # =========================
-# Commands & callbacks
+# Flask webhook endpoint
 # =========================
 
+@app.route("/", methods=["GET"])
+def index():
+    return "HOLAKO Bot is running", 200
 
-@bot.message_handler(commands=["start"])
+
+@app.route(WEBHOOK_PATH, methods=["POST"])
+def webhook():
+    if request.headers.get("content-type") == "application/json":
+        json_str = request.get_data().decode("utf-8")
+        update = telebot.types.Update.de_json(json_str)
+        bot.process_new_updates([update])
+        return "", 200
+    else:
+        abort(403)
+
+
+# =========================
+# Bot handlers (نستعمل نفس المنطق ديالك)
+# =========================
+
+@bot.message_handler(commands=["start", "help"])
 def start_command(message):
     user_id = message.from_user.id
     user_name = message.from_user.first_name or "Friend"
-
-    if user_id not in user_data or "language" not in user_data[user_id]:
-        markup = types.InlineKeyboardMarkup()
-        ar_btn = types.InlineKeyboardButton("🇸🇦 العربية", callback_data="lang_ar")
-        en_btn = types.InlineKeyboardButton("🇺🇸 English", callback_data="lang_en")
-        fa_btn = types.InlineKeyboardButton("🇮🇷 فارسی", callback_data="lang_fa")
-        fr_btn = types.InlineKeyboardButton("🇫🇷 Français", callback_data="lang_fr")
-
-        markup.row(ar_btn, en_btn)
-        markup.row(fa_btn, fr_btn)
-
-        bot.send_message(
-            message.chat.id,
-            "🌍 Welcome! Please choose your language:\n"
-            "🌍 أهلاً! اختر لغتك:\n"
-            "🌍 خوش آمدید! زبان خود را انتخاب کنید:\n"
-            "🌍 Bienvenue! Choisissez votre langue:",
-            reply_markup=markup,
-        )
-    else:
-        show_welcome_message(message.chat.id, user_name, user_id)
-
-
-def show_welcome_message(chat_id: int, user_name: str, user_id: int):
-    welcome_text = get_message(user_id, "welcome", name=user_name)
-
-    markup = types.InlineKeyboardMarkup()
-    help_btn = types.InlineKeyboardButton(
-        get_message(user_id, "help_button"), callback_data="help"
-    )
-    quality_btn = types.InlineKeyboardButton(
-        get_message(user_id, "quality_button"), callback_data="quality"
-    )
-    lang_btn = types.InlineKeyboardButton(
-        get_message(user_id, "language_button"), callback_data="language"
-    )
-
-    markup.row(help_btn)
-    markup.row(quality_btn)
-    markup.row(lang_btn)
-
-    bot.send_message(chat_id, welcome_text, reply_markup=markup)
-
-
-@bot.callback_query_handler(func=lambda call: True)
-def callback_handler(call):
-    user_id = call.from_user.id
-    user_name = call.from_user.first_name or "Friend"
-
-    try:
-        # ... نفس الكود ديال callback اللي عندك (quality/lang/help)
-        # ما يحتاجش تغيير
-        pass
-
-    except Exception as e:
-        logger.error(f"Callback handler error: {e}")
-        bot.answer_callback_query(call.id, "Error occurred")
-
-
-# =========================
-# Video processing
-# =========================
+    text = get_message(user_id, "welcome", name=user_name)
+    bot.send_message(message.chat.id, text)
 
 
 def process_video_url(message):
@@ -311,25 +289,16 @@ def process_video_url(message):
         )
 
 
-# =========================
-# Text handler
-# =========================
-
-
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
     text = message.text or ""
     user_id = message.from_user.id
     user_name = message.from_user.first_name or "Friend"
 
-    if user_id not in user_data or "language" not in user_data[user_id]:
-        start_command(message)
-        return
-
     if is_video_url(text) or (is_valid_url(text) and text.startswith("http")):
-        thread = threading.Thread(target=process_video_url, args=(message,))
-        thread.daemon = True
-        thread.start()
+        th = threading.Thread(target=process_video_url, args=(message,))
+        th.daemon = True
+        th.start()
     else:
         bot.send_message(
             message.chat.id,
@@ -338,29 +307,17 @@ def handle_text(message):
 
 
 # =========================
-# Main
+# Main: setup webhook & run Flask
 # =========================
 
-
-def main():
-    print("🎬 Starting HOLAKO Download Bot - Production...")
-    logger.info("HOLAKO Bot starting with infinity_polling")
-
-    try:
-        bot.infinity_polling(
-            timeout=30,
-            long_polling_timeout=10,
-            none_stop=True,
-            interval=1,
-            allowed_updates=None,
-        )
-    except KeyboardInterrupt:
-        logger.info("Bot stopped by user")
-    except Exception as e:
-        logger.error(f"Bot error: {e}")
-        time.sleep(5)
-        main()  # auto‑restart
+def setup_webhook():
+    bot.remove_webhook()
+    time.sleep(1)
+    bot.set_webhook(url=WEBHOOK_URL, max_connections=5)
+    logger.info(f"Webhook set to {WEBHOOK_URL}")
 
 
 if __name__ == "__main__":
-    main()
+    setup_webhook()
+    logger.info(f"Starting Flask server on port {PORT}")
+    app.run(host="0.0.0.0", port=PORT)
