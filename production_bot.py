@@ -61,9 +61,9 @@ MESSAGES = {
         "too_large": "❌ حجم الفيديو كبير جداً (أكثر من 50 ميجا). جرب فيديو أصغر أو جودة أقل.",
         "unsupported": "❌ منصة غير مدعومة أو فيديو غير متاح.",
         "help": "🆘 مساعدة",
-        "help_text": "📚 طريقة الاستخدام:\n\n1️⃣ أرسل رابط الفيديو\n2️⃣ اختر الجودة من زر اختيار الجودة\n3️⃣ انتظر التحميل\n4️⃣ استلم الفيديو.",
+        "help_text": "📚 طريقة الاستخدام:\n\n1️⃣ أرسل رابط الفيديو\n2️⃣ اختر الجودة من الزر\n3️⃣ انتظر التحميل\n4️⃣ استلم الفيديو.",
         "about": "ℹ️ حول البوت",
-        "about_text": "🤖 بوت ISSAM المحسن للتحميل من 1000+ منصة.\nيدعم لغات متعددة واختيار الجودة.",
+        "about_text": "🤖 بوت ISSAM للتحميل من 1000+ منصة.",
         "instagram_auth_error": "❌ فيديو إنستغرام يتطلب تسجيل دخول أو غير متاح للعامة.",
         "network_error": "❌ مشكلة في الاتصال بالإنترنت. حاول لاحقاً.",
         "video_unavailable": "❌ الفيديو غير متاح حالياً. جرب رابطاً آخر.",
@@ -90,9 +90,9 @@ MESSAGES = {
         "too_large": "❌ Video is too large (over 50 MB). Try a smaller video or lower quality.",
         "unsupported": "❌ Unsupported platform or video not available.",
         "help": "🆘 Help",
-        "help_text": "📚 How to use:\n\n1️⃣ Send video link\n2️⃣ Choose preferred quality\n3️⃣ Wait for download\n4️⃣ Receive your video.",
+        "help_text": "📚 How to use:\n\n1️⃣ Send video link\n2️⃣ Choose quality\n3️⃣ Wait for download\n4️⃣ Receive your video.",
         "about": "ℹ️ About Bot",
-        "about_text": "🤖 ISSAM Enhanced Test Bot.\nSupports 1000+ sites, multiple languages and quality selection.",
+        "about_text": "🤖 ISSAM Enhanced Test Bot.",
         "instagram_auth_error": "❌ Instagram video requires login or is not public.",
         "network_error": "❌ Internet connection problem. Please try again later.",
         "video_unavailable": "❌ Video is currently unavailable. Try another link.",
@@ -341,3 +341,4 @@ def start_command(message):
         f"📎 {get_message(user_id, "send_link")}",
         reply_markup=create_main_keyboard(user_id),
     )
+
