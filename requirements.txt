@@ -1,4 +1,4 @@
-# Heliya Bot - Video Downloader Requirements for Production
+# HOLAKO Bot - Video Downloader Requirements for Production
 
 # Main dependencies (updated for hosting)
 pyTelegramBotAPI==4.29.1
