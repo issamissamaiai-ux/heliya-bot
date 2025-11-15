@@ -1,46 +1,16 @@
 # HOLAKO Bot - Video Downloader Requirements for Production
 
-# Main dependencies (updated for hosting)
-pyTelegramBotAPI==4.29.1
-yt-dlp==2023.11.16
-
-# Essential utilities
-requests>=2.31.0
-urllib3>=2.0.0
-
-# For environment variables
-python-dotenv>=1.0.0
-
-# For better logging
-colorlog>=6.8.0
-
-Flask>=3.0.0
+# Main dependencies
 pyTelegramBotAPI==4.29.1
 yt-dlp>=2024.11.15
 Flask>=3.0.0
 
+# HTTP utilities
 requests>=2.31.0
 urllib3>=2.0.0
+
+# Env vars
 python-dotenv>=1.0.0
+
+# Logging
 colorlog>=6.8.0
-pyTelegramBotAPI==4.29.1
-Flask>=3.0.0
-
-requests>=2.31.0
-urllib3>=2.0.0
-python-dotenv>=1.0.0
-colorlog>=6.8.0
-
-yt-dlp>=2024.11.15
-
-pyTelegramBotAPI==4.29.1
-
-Flask>=3.0.0
-
-requests>=2.31.0
-urllib3>=2.0.0
-python-dotenv>=1.0.0
-colorlog>=6.8.0
-
-
-
